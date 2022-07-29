@@ -1,0 +1,27 @@
+{
+  "name": "inflearn-frontend-environment",
+  "version": "1.0.0",
+  "description": "인프런 [프론트엔드 개발환경 (김정환)](https://www.inflearn.com/course/%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%EA%B0%9C%EB%B0%9C%ED%99%98%EA%B2%BD) 강의를 수강 내용을 나의 언어로 기록한다.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuruneLee/inflearn-frontend-environment.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GuruneLee/inflearn-frontend-environment/issues"
+  },
+  "homepage": "https://github.com/GuruneLee/inflearn-frontend-environment#readme",
+  "dependencies": {
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}
