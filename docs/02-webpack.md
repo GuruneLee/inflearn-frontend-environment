@@ -85,21 +85,23 @@ npx 명령어를 통해 다음과 같이 실행한다.
     - 크롬에서도 `<script type="text/javascript" src="./src/app.js">`로는 사용 불가.
         - `type`을 `module`로 해줘야 함 (`<script type="module" src="./src/app.js">`)
     - 되든 안되든, 아무튼 **모듈을 사용하는 방식이 브라우져 마다 다름**
-4. Webpack이 필요한 이유
-    - 우린 브라우져마다 다르게 코드를 작성하고 싶지 않다. 하지만, 그렇게 하지 않으려면 모듈을 사용하면 안된다. 하나의 큰 js파일만 작성하면 굳이 모듈 시스템을 사용하지 안아도 된다!
-    - 미친소리다. 개발자들은 유지 보수할 수 없는 거대한 스파게티 코드를 만들고 싶지 않다.
-    - 그렇다면 **먼저 모듈로 개발한 뒤, 모듈간 의존성을 잘 파악하여 하나의 js파일로 합치면 되지 않을까?** 그렇다. 이게 webpack의 역할이다. 드디어 **webpack이 필요한 시점이다.**
+### Webpack의 등장
+- 우린 **브라우져마다 다르게 코드를 작성하고 싶지 않다**. 하지만, 그렇게 하지 않으려면 모듈을 사용하면 안된다. 하나의 큰 js파일만 작성하면 굳이 모듈 시스템을 사용하지 안아도 된다!
+- 미친소리다. 개발자들은 유지 보수할 수 없는 거대한 스파게티 코드를 만들고 싶지 않다.
+- 그렇다면 **먼저 모듈로 개발한 뒤, 모듈간 의존성을 잘 파악하여 하나의 js파일로 합치면 되지 않을까?** 그렇다. 이게 webpack의 역할이다. 드디어 **webpack이 필요한 시점이다.**
 ## 02. 엔트리/아웃풋
-- 번들(Bundle)
-    ![img](./img/module-with-dependencies.png)
-    - 모듈을 사용하게 되면 위 이미지 처럼 여러 파일들이 의존성을 가진체 얽히고 설켜있게 된다
-    - 이를 하나의 큰 정적 소스로 만드는 작업을 **번들링(Bundling)**이라 일컫는다.
-        ![img](./img/bundling.png)
-    - webpack이 이걸 해준다
+### 번들(Bundle)  
+![img](./img/module-with-dependencies.png)
+- 모듈을 사용하게 되면 위 이미지 처럼 여러 파일들이 의존성을 가진체 얽히고 설켜있게 된다
+- 이를 하나의 큰 정적 소스로 만드는 작업을 **번들링(Bundling)**이라 일컫는다.
+    ![img](./img/bundling.png)
+- webpack이 이걸 해준다
+### install webpack
 - webpack 설치
     - webpack 패키지 : `npm install webpack`
     - webpack-cli : `npm install webpack-cli`
     - -> package.json > dependencies에 추가됨 + node_modules > .bin 에 추가됨
+### config & build webpack
 - webpack 실행(번들링) 필수 옵션 세 가지
     - mode
         - mode에 따라 최적화 수준 / 번들링 패키지가 달라짐
@@ -138,6 +140,72 @@ npx 명령어를 통해 다음과 같이 실행한다.
             - 이렇게 스크립트에 추가하면 알아서 node_modules/.bin에서 실행가능한 파일을 읽어와서 실행시켜준다.
             - 다시말하지만, `--config webpack.config.js` 는 디폴트라서 안써줘도 된다.
         - 터미널에서 다음과같이 webpack을 실행할 수 있게 되었다
-            - `npm run build`            
+            - `npm run build`
+### 실습 (1-webpack/1-entry)
+Q. webpack으로 빌드한 자바스크립트를 index.html에 로드하기  
+A. 다음 순서에 따르면 됨
+1. 프로젝트를 npm 프로젝트로 만들기 (`$npm init`)
+2. webpack을 프로젝트 의존성에 추가하기 (`$npm install webpack`)
+    - webpack-cli 는 굳이 필요 없음
+3. webpack 필수 옵션을 포함한 설정파일을 작성
+    - 설정 파일: webpack.config.js
+    - 필수 옵션: mode / entry / output
+    ```javascript
+    const path = require('path');
+
+    module.exports = {
+        mode: 'development',
+        entry: {
+            main: './src/app.js'
+        },
+        output: {
+            path: path.resolve('./dist'),
+            filename: '[name].js'
+        }
+    }
+    ```
+4. 빌드
+    - package.json > scripts 에 `"build": "webpack"` 추가
+    - `npm run build`
+    - (중요) webpack 의 기본 옵션으로 `--config webpack.config.js`가 있음
+5. index.html에 로드
+    - 빌드 결과물은 이제 평범한 js 파일이므로, `script:src`로 로딩 가능
+    - webpack.config.js 의 output 옵션에 설정한 경로대로 추가하기
+    - `<script src="./dist/main.js"></script>` 를 index.html에 추가
 ## 03. 로더
+webpack은 모오오오든 파일을 '모듈'로 바라보고, 처리한다. js는 물론, css, html, 이미지, 심지어 font도 모듈이다. 이 말인 즉, 모든 파일을 js소스에 `import`하여 사용할 수 있다.  
+  
+근데, 그냥은 아니고... **로더**가 있어야 한다.  
+로더는 타입스크립트 등의 언어를 js문법으로 transfile 해주거나, css파일을 자바스크립트에서 직접 로딩할 수 있도록 해준다. 로더는, **이 세상 모든 파일을 js소스로 가지고 들어올 수 있게 해주는 magic이다.**
+
+### 로더의 동작 원리  
+: 커스텀 로더를 만들며 동작 원리를 이해해보자.  
+- my-webpack-loader.js 구현 및 webpack.config.js에 추가
+    ```javascript
+    // my-webpack-loader.js
+    // console을 만나면 이걸 alert으로 바꿔버림
+    module.exports = function myWebpackLoader(content) {
+        return content.replace('console.log(','alert(')
+    }
+    ```
+    - **로더 = 파일의 컨텐츠를 불러와 적당히 js소스처럼 바꿔서 반환하는 함수**
+- 로더는 webpack.config.js의 `module > rules`에 `{test:_, use:[]}` 형식으로 추가할 수 있음
+    ```javascript
+        module: {
+            rules: [
+            {
+                test: /\.js$/, //로더가 불러와야 할 파일명 패턴
+                use: [ // 사용할 로더 목록
+                path.resolve("./my-webpack-loader.js"),
+                ],
+            },
+            ];
+        }
+    ```
+  - .js로 끝나는 모든 파일에 my-webpack-loader.js를 적용한다는 의미
+- app.js에서 `console.log(math.sum(1,2))`인 부분은 실행되지 않고, `alert(math.sum(1,2))`이 실행되는 것을 볼 수 있음.  
+![img](./img/custom-loader-web.png)
+### 자주 사용하는 로더
+
+
 ## 04. 플러그인
