@@ -206,6 +206,122 @@ webpack은 모오오오든 파일을 '모듈'로 바라보고, 처리한다. js�
 - app.js에서 `console.log(math.sum(1,2))`인 부분은 실행되지 않고, `alert(math.sum(1,2))`이 실행되는 것을 볼 수 있음.  
 ![img](./img/custom-loader-web.png)
 ### 자주 사용하는 로더
+1. css-loader
+- css 파일을 js 스트링으로 불러올 수 있다. 먼저 css-loader를 설치하자
+- `npm install css-loader`
+```
+// webpack.config.js
+module: {
+    rules: [
+        {
+            test: /\.css$/, //로더가 불러와 야 할 파일명 패턴
+            use: [ // 사용할 로더
+                'css-loader'
+            ]
+        }
+    ]
+}
+```
+```
+// app.css
+body {
+    background-color: green;
+}
+// app.js
+import './app.css'
+```
+- 이렇게 로더를 설정하고 js에서 css 파일을 불러와 빌드를 하면, main.js에 css파일이 js소스로서 불러와 진 것을 확인할 수 있다.
+```
+// dist/main.js
+...
+\Module\n___CSS_LOADER_EXPORT___.push([module.id, \"body {\\n    background-color: green;\\n}\...
+```
+(어.. 잘 찾아보면 있다...)
+- 그런데 브라우져에 띄워보면, css가 적용이 되질 않았다\
+![img](./img/white-body.png)
 
+2. style-loader
+: html 엘리먼트가 돔으로 렌더링 되어야만 브라우져에 디스플레이 되듯이, js소스에 포함된 css도 css-om이라는 형태가 되어야 브라우져에서 확인할 수 있다. \
+그래서, **style-loader**가 존재한다. 
+```
+// webpack.config.js
+module: {
+    rules: [
+        {
+            test: /\.css$/,
+            use: [ // 한 파일에 대해 여러 로더를 적용될 경우 "뒤에 배치된 로더" 부터 적용
+                'style-loader',
+                'css-loader'
+            ]
+        }
+    ]
+}
+```
+- 한 파일에 대해 여러 loader가 적용되어야 할 경우, `use` 배열 배치의 역순으로 loade가 적용된다.
+- 이 후 다시 빌드하면 브라우져 body가 초록색으로 바뀐 것을 확인할 수 있다.\
+![img](./img/green-body.png)
+
+3. file-loader
+소스코드에서 사용하는 모오든 파일을 모듈로 사용하게끔 해준다. 주로 Image 파일!\
+file 을 모듈 형태로 지원하고, 웹팩 아웃풋에 파일을 옮겨주는 역할을 해주는 것이 바로 **file-loader**이다.\
+\
+- css에서 url()함수에 이미지 파일 경로를 받아올 수 있는데, file-loader를 이용하면 이 파일을 처리할 수 있다. file-loader를 사용하지 않으면 이렇게 불러온 파일을 번들링 할 수 없기때문에 error가 난다
+```
+// app.css
+body {
+    background-image: url(../docs/img/green-body.png);
+}
+// app.js
+import './app.css'
+```
+- 이렇게 하면 에러가 난다. \
++ ![#f03c15](https://via.placeholder.com/15/f03c15/f03c15.png) 이대로 빌드하면 에러가 나야 되는데... 안난다
+    - 원인: Webpack 5.x 부터는 몇 가지 loader가 webpack asset module 로 편입 되었다! file-loader를 사용해보고 싶다면, 버전을 내리든가 하자
+    - raw-loader, url-loader, file-loader
+    - [Webpack 5 > Asset Modules](https://webpack.js.org/guides/asset-modules/)를 참고하자
+
+- file-loader를 추가하자
+```javascript
+// webpack.config.js
+...
+{
+    test: /\.png$/,
+    use: [ 
+        'file-loader'
+    ]
+}
+...
+```
+    - 이제 빌드하면 dist 폴더에 hash값으로 네이밍 된 이미지 파일을 확인 할 수 있다.
+    - 그런데, 이제 이 파일은 어떻게 불러오니..? 
+    - webpack.config.js 에 다음과 같이 추가하자
+```javascript
+// webpack.config.js
+...
+{
+    test: /\.png$/,
+    loader: 'file-loader', // use 대신 사용 가능
+    options: {
+        publicPath: './dist/' // 해당 파일을 불러오는 부분에서 앞에 './dist/'를 붙이겠다는 의미
+    }
+}
+...
+```
+- 이제 제대로 불러와진다.
+- options의 더 많은 옵션도 공부해보자!
+- **더 자세한 내용은 필요할 때 다시 보자!**
+
+4. url-loader
+- **더 자세한 내용은 필요할 때 다시 보자!**
 
 ## 04. 플러그인
+- 로더는 파일 단위 처리를 담당한다면, 플러그인은 **번들된 결과물을 처리**한다.
+- *난독화*, *텍스트 추출* 등의 작업에 사용된다.
+### 커스텀 플러그인 만들어보기
+### 웹팩 내장 플로그인 사용해보기
+### 자주 사용하는 플러그인
+1. BannerPlugin
+2. DefinePlugin
+3. (ThirdParty) HtmlWebpackPlugin
+4. CleanWebpackPlugin
+5. MiniCssExtractPlugin

@@ -12,10 +12,11 @@ module.exports = { // Node.js 네이티브 모듈 시스템입니당
     module: {
         rules: [
             {
-                test: /\.js$/, //로더가 불러와 야 할 파일명 패턴
+                test: /\.css$/, //로더가 불러와 야 할 파일명 패턴
                 use: [ // 사용할 로더
-                    path.resolve('./my-webpack-loader.js')
-                ]
+                    'style-loader',
+                    'css-loader'
+                ],
             }
         ]
     }
