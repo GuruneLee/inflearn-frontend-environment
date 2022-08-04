@@ -1,4 +1,5 @@
 const path = require('path');
+const MyWebpackPlugin = require('./my-webpack-plugin');
 
 module.exports = { // Node.js 네이티브 모듈 시스템입니당
     mode: 'development', // --mode
@@ -17,7 +18,16 @@ module.exports = { // Node.js 네이티브 모듈 시스템입니당
                     'style-loader',
                     'css-loader'
                 ],
+            },
+            {
+                test: /\.png$/,
+                use: [
+                    'file-loader'
+                ]
             }
         ]
-    }
+    },
+    plugins: [
+        new MyWebpackPlugin(),
+    ]
 }

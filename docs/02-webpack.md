@@ -279,6 +279,7 @@ import './app.css'
     - 원인: Webpack 5.x 부터는 몇 가지 loader가 webpack asset module 로 편입 되었다! file-loader를 사용해보고 싶다면, 버전을 내리든가 하자
     - raw-loader, url-loader, file-loader
     - [Webpack 5 > Asset Modules](https://webpack.js.org/guides/asset-modules/)를 참고하자
+    - 플러그인 강의 부터는 강의에 맞는 버전을 사용한다
 
 - file-loader를 추가하자
 ```javascript
@@ -318,10 +319,61 @@ import './app.css'
 - 로더는 파일 단위 처리를 담당한다면, 플러그인은 **번들된 결과물을 처리**한다.
 - *난독화*, *텍스트 추출* 등의 작업에 사용된다.
 ### 커스텀 플러그인 만들어보기
-### 웹팩 내장 플로그인 사용해보기
+웹팩 공식 문서에서 [Write a Plugin](https://webpack.js.org/contribute/writing-a-plugin/) 에서 샘플 코드를 가져와보자 (js class 문법을 알아야 한다)\
+```javascript
+class MyWebpackPlugin {
+  apply(compiler) {
+      compiler.hooks.done.tap("My Plugin", stats => {
+        // 플러그인 완료시 콜백
+        console.log("MyPlugin: done");
+      });
+  }
+}
+module.exports = MyWebpackPlugin;
+```
+- 이 커스텀 플러그인을 webpack.config.js에 추가하고 빌드 해보자
+```javascript
+...
+    plugins: [
+        new MyWebpackPlugin(), // 인스턴스를 직접 넣어줘야 한다
+    ]
+...
+```
+빌드에 성공하면 커스텀 플러그인에 찍어놨던 `console.log`를 확인할 수 있다.\
+![img](./img/success-custom-plugin.png)
+
+이번엔 진짜로 **번들의 결과물을 처리**해보도록 하자 (커스텀 플러그인을 수정해서 사용)
+```javascript
+class MyWebpackPlugin {
+  apply(compiler) {
+      compiler.plugin('emit', (compilation, callback) => { // 1,2
+          const source = compilation.assets['main.js'].source(); //3
+          compilation.assets['main.js'].source = () => {
+              const banner = [
+                  '/**',
+                  ' * 이것은 BannerPlugin이 처리한 결과입니다.',
+                  ' * Build Date: yyyy-MM-dd',
+                  ' */'
+              ].join('\n');
+              return banner + '\n\n' + source; //3
+          }
+          callback(); 
+      })
+  }
+}
+module.exports = MyWebpackPlugin;
+```
+- **1) 'emit'** : 번들링이 완료되면 발행되는 이벤트
+- **2) *compilation, callback*** : 번들링 결과물과 콜백함수
+- **3) *compilation.assets*** : 번들링 결과물을 '파일이름'으로 불러올 수 있는 api. 소스코드의 경우 `source()`로 가져올 수도 있고, `source`프로퍼티에 새로운 값을 넣을수도 있다.
+![img](./img/success-custom-plugin2.png)
+
 ### 자주 사용하는 플러그인
+- 내장 플러그인과 써드파티 플러그인이 혼재한다. 잘 찾아서 알아서보자!
 1. BannerPlugin
 2. DefinePlugin
-3. (ThirdParty) HtmlWebpackPlugin
+3. HtmlWebpackPlugin
 4. CleanWebpackPlugin
 5. MiniCssExtractPlugin
+
+--끝--
